@@ -48,7 +48,7 @@ src
              ├─ external        # 외부 API 연동 (OpenWeather, AI 서버 등)
              ├─ global          # 예외 처리, 설정 클래스, 응답 필터 등 전역 구성
              ├─ swagger         # Swagger 문서화 관련 설정
-             └─ NapzakApplication.java  # Main Application Class
+             └─ AissApplication.java  # Main Application Class
 ```
 
 ---
