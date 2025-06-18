@@ -34,9 +34,6 @@ AI 쓱싹비서는 사용자 생활 패턴, 일정, 날씨 데이터를 기반�
 
 ## 🗂 프로젝트 구조 (DDD 기반, Bounded Context 중심)
 
-<details>
-<summary>디렉토리 구조 보기</summary>
-
 ```text
 src
  └─ main
