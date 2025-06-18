@@ -37,18 +37,49 @@ AI 쓱싹비서는 사용자 생활 패턴, 일정, 날씨 데이터를 기반�
 ```text
 src
  └─ main
-     └─ java
-         └─ com.example.aiss
-             ├─ auth            # 인증/인가 관련 모듈 (Google OAuth)
-             ├─ common          # 공통 유틸, 상수, response wrapper 등
-             ├─ domain
-             │   ├─ routine     # 루틴 생성/조회/달성 처리
-             │   ├─ feedback    # 사용자 피드백 수집 도메인
-             │   └─ calendar    # Google Calendar 연동 도메인
-             ├─ external        # 외부 API 연동 (OpenWeather, AI 서버 등)
-             ├─ global          # 예외 처리, 설정 클래스, 응답 필터 등 전역 구성
-             ├─ swagger         # Swagger 문서화 관련 설정
-             └─ AissApplication.java  # Main Application Class
+     ├─ java
+     │   └─ com.ai_ss
+     │       ├─ domain                # 핵심 도메인 모듈
+     │       │   ├─ ai                # AI 서버 호출 및 전송 모델
+     │       │   ├─ cleaningTask      # 전체 청소 종류 및 소요시간 관리
+     │       │   ├─ feedback          # 사용자 피드백 관리
+     │       │   ├─ routine           # 루틴 생성 및 관리
+     │       │   └─ user              # 사용자 정보 및 설정 관리
+     │       │       ├─ api
+     │       │       │   ├─ controller  # 사용자 API 요청 처리
+     │       │       │   ├─ dto         # 사용자 요청/응답 데이터 객체
+     │       │       │   ├─ exception   # 사용자 도메인 전용 예외
+     │       │       │   └─ service     # 사용자 도메인 비즈니스 로직
+     │       │       └─ core
+     │       │           ├─ entity      # JPA Entity 및 Enum 정의
+     │       │           └─ vo          # Value Object (Address, Preferences 등)
+     │       └─ global
+     │           ├─ auth             # 인증 관련 전역 모듈
+     │           │   ├─ annotation
+     │           │   ├─ client        # Google/Kakao OAuth 클라이언트
+     │           │   ├─ jwt           # JWT 생성, 필터, 서비스
+     │           │   ├─ redis         # Redis 기반 토큰 잠금 처리
+     │           │   ├─ resolver      # 로그인 유저 정보 Argument Resolver
+     │           │   ├─ role          # 권한/역할 처리 유틸
+     │           │   └─ security      # Spring Security 설정
+     │           ├─ common           # 공통 유틸/설정/응답 구조
+     │           │   ├─ annotation    # 커스텀 어노테이션
+     │           │   ├─ config        # 전역 설정 (Security, Redis, Swagger 등)
+     │           │   ├─ controller    # HealthCheck 등 공통 컨트롤러
+     │           │   ├─ converter     # Enum 변환 등
+     │           │   ├─ entity        # 공통 엔티티 (예: BaseTimeEntity)
+     │           │   ├─ exception     # 전역 에러 코드 및 예외 처리
+     │           │   └─ handler       # GlobalExceptionHandler
+     │           ├─ external.s3      # S3 업로드 등 외부 연동
+     │           └─ swagger          # Swagger 관련 구성
+     ├─ resources
+     │   ├─ application.yml
+     │   ├─ application-local.yml
+     │   └─ application-prod.yml
+     └─ test
+         └─ java
+             └─ com.ai_ss
+                 └─ AiSsApplicationTests
 ```
 
 ---
