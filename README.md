@@ -38,7 +38,7 @@ AI 쓱싹비서는 사용자 생활 패턴, 일정, 날씨 데이터를 기반�
 src
  └─ main
      └─ java
-         └─ com.example.napzak
+         └─ com.example.aiss
              ├─ auth            # 인증/인가 관련 모듈 (Google OAuth)
              ├─ common          # 공통 유틸, 상수, response wrapper 등
              ├─ domain
