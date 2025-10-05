@@ -88,21 +88,22 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.DEV_PEM_KEY }}
           source: |
             docker-compose.yml
-            script/
+            script/**
           target: /home/ec2-user/app/
+          overwrite: true
 
       - name: Run deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.DEV_PEM_KEY }}
           script: |
-            cd /home/ec2-user/app
+            cd /home/ubuntu/app
             echo "APP_ECR_REPO=${{ env.APP_ECR_REPO }}" > .env
             echo "IMAGE_TAG=dev-${{ steps.meta.outputs.sha }}" >> .env
             echo "AWS_REGION=${{ env.AWS_REGION }}" >> .env
