@@ -87,17 +87,16 @@ jobs:
       - name: Show files before SCP
         run: |
           ls -al
-          ls -al script || true
+          test -f docker-compose.yml
+          test -f script/deploy.sh
 
       - name: Upload compose & scripts to EC2
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
           username: ubuntu
           key: ${{ secrets.DEV_PEM_KEY }}
-          source: |
-            docker-compose.yml
-            script/deploy.sh
+          source: "docker-compose.yml,script/deploy.sh"
           target: /home/ubuntu/app/
           overwrite: true
 
