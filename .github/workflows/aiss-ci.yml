@@ -16,10 +16,6 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
 
-      - name: Remove local org.gradle.java.home from gradle.properties
-        run: |
-          sed -i.bak '/^org\.gradle\.java\.home=/d' gradle.properties || true
-
       - name: Gradle build
         run: |
           chmod +x gradlew
