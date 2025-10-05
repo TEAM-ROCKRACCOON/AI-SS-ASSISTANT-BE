@@ -90,7 +90,7 @@ dependencies {
 	implementation 'com.google.apis:google-api-services-calendar:v3-rev20250404-2.0.0'
 
 	// ⬇️ Secrets Manager Config Import 지원
-	implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager:3.1.1"
+	implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager:3.2.0"
 }
 
 // 실행 JAR 하나만 나오게
