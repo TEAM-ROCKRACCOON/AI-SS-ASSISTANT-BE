@@ -52,7 +52,6 @@ dependencies {
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// Junit
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -89,6 +88,12 @@ dependencies {
 	implementation 'com.google.api-client:google-api-client:2.6.0'
 	implementation 'com.google.oauth-client:google-oauth-client-jetty:1.36.0'
 	implementation 'com.google.apis:google-api-services-calendar:v3-rev20250404-2.0.0'
+}
+
+// 실행 JAR 하나만 나오게
+jar { enabled = false }
+bootJar {
+	archiveFileName = 'app.jar'   // 항상 app.jar로 생성
 }
 
 tasks.named('test') {

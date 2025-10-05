@@ -3,13 +3,6 @@ on:
   push:
     branches: [ "main" ]
 
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REPO_NAME: ${{ secrets.ECR_APP_NAME }}-dev
-  ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  APP_ECR_REPO: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/${{ secrets.ECR_APP_NAME }}-dev
-  SECRET_ID: aiss/dev   # Secrets Manager 시크릿 이름
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,7 +16,6 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
 
-      # ✅ 필수 시크릿이 비어있으면 즉시 fail
       - name: Sanity check required secrets
         run: |
           test -n "${{ secrets.AWS_ACCESS_ID }}"   || (echo "❌ AWS_ACCESS_ID missing"; exit 1)
@@ -31,7 +23,6 @@ jobs:
           test -n "${{ secrets.AWS_ACCOUNT_ID }}"  || (echo "❌ AWS_ACCOUNT_ID missing"; exit 1)
           test -n "${{ secrets.ECR_APP_NAME }}"    || (echo "❌ ECR_APP_NAME missing"; exit 1)
 
-      # ✅ 여기서부터 필요한 env를 만들어 $GITHUB_ENV 로 주입
       - name: Derive env
         run: |
           echo "AWS_REGION=ap-northeast-2" >> $GITHUB_ENV
@@ -40,7 +31,6 @@ jobs:
           echo "APP_ECR_REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/${{ secrets.ECR_APP_NAME }}-dev" >> $GITHUB_ENV
           echo "SECRET_ID=aiss/dev" >> $GITHUB_ENV
 
-      # ✅ 자격증명은 with: 로 명시 전달
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -48,31 +38,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Ensure Private ECR exists
         run: |
           aws ecr describe-repositories --repository-names "${ECR_REPO_NAME}" >/dev/null 2>&1 || \
           aws ecr create-repository --repository-name "${ECR_REPO_NAME}" >/dev/null
 
-      - name: Strip org.gradle.java.home from all gradle.properties
-        run: |
-          set -e
-          files=$(git ls-files | grep 'gradle.properties$' || true)
-          for f in $files; do
-            sed -i.bak '/^org\.gradle\.java\.home=/d' "$f" || true
-          done
-          echo "Sanity check:"; grep -Rn '^org\.gradle\.java\.home=' || true
-
-      - name: Gradle build
-        run: |
-          chmod +x gradlew
-          ./gradlew clean build -x test
+      # gradle 로컬 빌드는 멀티스테이지가 대신하므로 불필요
 
       - name: Login to ECR
         run: |
@@ -91,14 +62,12 @@ jobs:
           docker push $APP_ECR_REPO:dev-${{ steps.meta.outputs.sha }}
           docker push $APP_ECR_REPO:latest-dev
 
-      # === GitHub Secret -> 파일(멀티라인 안전) ===
       - name: Materialize application-dev.yml from secret
         env:
           APP_DEV_YML: ${{ secrets.APPLICATION_DEV_YML }}
         run: |
           printf '%s' "$APP_DEV_YML" > application-dev.yml
 
-      # === Secrets Manager 업서트 (Here-Doc 제거) ===
       - name: Upsert application-dev.yml into Secrets Manager
         run: |
           if aws secretsmanager describe-secret --secret-id "${SECRET_ID}" >/dev/null 2>&1; then
@@ -109,7 +78,6 @@ jobs:
             echo "🆕 Created secret ${SECRET_ID}"
           fi
 
-      # === docker-compose.yml도 Secret에서 생성 (멀티라인 안전) ===
       - name: Write docker-compose.yml from secret
         env:
           DOCKER_COMPOSE_DEV_YML: ${{ secrets.DOCKER_COMPOSE_DEV_YML }}
@@ -127,7 +95,6 @@ jobs:
             script/
           target: /home/ec2-user/app/
 
-      # === EC2에 .env 생성 (Here-Doc 대신 echo) ===
       - name: Run deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -142,6 +109,12 @@ jobs:
             chmod 600 .env
             chmod +x ./script/deploy.sh
             ./script/deploy.sh
+
+      - name: Install jq
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          jq --version
 
       - name: Keep last 10 dev tags
         run: |
