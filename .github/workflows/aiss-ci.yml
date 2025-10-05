@@ -16,6 +16,15 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
 
+      - name: Strip org.gradle.java.home from all gradle.properties
+        run: |
+          set -e
+          files=$(git ls-files | grep 'gradle.properties$' || true)
+          for f in $files; do
+            sed -i.bak '/^org\.gradle\.java\.home=/d' "$f" || true
+          done
+          echo "Sanity check:"; grep -Rn '^org\.gradle\.java\.home=' || true
+
       - name: Gradle build
         run: |
           chmod +x gradlew
