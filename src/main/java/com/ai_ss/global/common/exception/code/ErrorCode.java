@@ -21,6 +21,12 @@ public enum ErrorCode implements BaseErrorCode {
 	BUSINESS_LOGIC_ERROR(HttpStatus.BAD_REQUEST, "비즈니스 로직 처리 중 오류가 발생했습니다."),
 	INVALID_CURSOR_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 커서입니다."),
 	INVALID_SORT_OPTION(HttpStatus.BAD_REQUEST, "유효하지 않은 정렬기준입니다."),
+	SOCIAL_TYPE_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 타입입니다."),
+
+	/*
+	403 Forbidden
+	 */
+	ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
 	/*
 	 404 NOT FOUND

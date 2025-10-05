@@ -45,6 +45,6 @@ public class TokenService {
 				return new AiSsException(TokenErrorCode.REFRESH_TOKEN_NOT_FOUND);
 			});
 		tokenRepository.delete(token);
-		log.info("Successfully deleted refresh token for memberId: {}", memberId);
+		log.info("Successfully isDeleted refresh token for memberId: {}", memberId);
 	}
 }

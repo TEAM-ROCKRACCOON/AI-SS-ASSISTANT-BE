@@ -5,6 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record GoogleUserResponse(
-	String sub
+	String sub,
+	String email,
+	Boolean verifiedEmail,
+	String givenName,
+	String familyName,
+	String picture
 ) {
 }

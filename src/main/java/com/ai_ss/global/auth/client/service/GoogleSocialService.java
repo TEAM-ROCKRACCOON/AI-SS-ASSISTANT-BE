@@ -1,10 +1,15 @@
 package com.ai_ss.global.auth.client.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.ai_ss.domain.user.core.entity.enums.SocialType;
-import com.ai_ss.global.auth.client.dto.StoreSocialInfoResponse;
+import com.ai_ss.global.auth.client.dto.UserSocialInfoResponse;
 import com.ai_ss.global.auth.client.dto.StoreSocialLoginRequest;
 import com.ai_ss.global.auth.client.exception.OAuthErrorCode;
 import com.ai_ss.global.auth.client.google.GoogleApiClient;
@@ -37,7 +42,7 @@ public class GoogleSocialService implements SocialService {
 	private final GoogleAuthApiClient googleAuthApiClient;
 
 	@Override
-	public StoreSocialInfoResponse login(
+	public UserSocialInfoResponse login(
 		final String authorizationCode,
 		final StoreSocialLoginRequest loginRequest
 	) {
@@ -51,22 +56,49 @@ public class GoogleSocialService implements SocialService {
 		return getLoginDto(loginRequest.socialType(), getUserInfo(accessToken));
 	}
 
-	private String getOAuth2Authentication(
-		final String authorizationCode) {
-		GoogleAccessTokenResponse response;
+	private String getOAuth2Authentication(final String authorizationCode) {
 		try {
-			response = googleAuthApiClient.getOAuth2AccessToken(
-				AUTH_CODE,
-				clientId,
-				clientSecret,
-				redirectUri,
-				authorizationCode
-			);
-		} catch (FeignException e) {
+			GoogleAccessTokenResponse res = WebClient.builder()
+				.baseUrl("https://oauth2.googleapis.com")
+				.build()
+				.post()
+				.uri("/token")
+				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.body(BodyInserters.fromFormData("grant_type", "authorization_code")
+					.with("client_id", clientId)
+					.with("client_secret", clientSecret)
+					.with("redirect_uri", redirectUri)
+					.with("code", authorizationCode))
+				.retrieve()
+				.bodyToMono(GoogleAccessTokenResponse.class)
+				.block();
+
+			if (res == null || res.accessToken() == null) {
+				throw new AiSsException(OAuthErrorCode.O_AUTH_TOKEN_ERROR);
+			}
+			return "Bearer " + res.accessToken();
+		} catch (Exception e) {
+			log.error("Google token exchange failed", e);
 			throw new AiSsException(OAuthErrorCode.O_AUTH_TOKEN_ERROR);
 		}
-		return "Bearer " + response.accessToken();
 	}
+
+	// private String getOAuth2Authentication(
+	// 	final String authorizationCode) {
+	// 	GoogleAccessTokenResponse response;
+	// 	try {
+	// 		response = googleAuthApiClient.getOAuth2AccessToken(
+	// 			AUTH_CODE,
+	// 			clientId,
+	// 			clientSecret,
+	// 			redirectUri,
+	// 			authorizationCode
+	// 		);
+	// 	} catch (FeignException e) {
+	// 		throw new AiSsException(OAuthErrorCode.O_AUTH_TOKEN_ERROR);
+	// 	}
+	// 	return "Bearer " + response.accessToken();
+	// }
 
 	private GoogleUserResponse getUserInfo(
 		final String accessToken
@@ -84,13 +116,15 @@ public class GoogleSocialService implements SocialService {
 		return response;
 	}
 
-	private StoreSocialInfoResponse getLoginDto(
+	private UserSocialInfoResponse getLoginDto(
 		final SocialType socialType,
 		final GoogleUserResponse googleUserResponse
 	) {
-		return StoreSocialInfoResponse.of(
+		return UserSocialInfoResponse.of(
 			googleUserResponse.sub(),
-			socialType
+			socialType,
+			googleUserResponse.email(),
+			googleUserResponse.givenName()
 		);
 	}
 }

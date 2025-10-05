@@ -62,16 +62,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private void setAuthentication(String token, HttpServletRequest request) {
-		Long storeId = jwtTokenProvider.getStoreIdFromJwt(token);
+		Long userId = jwtTokenProvider.getUserIdFromJwt(token);
 		Role role = jwtTokenProvider.getRoleFromJwt(token);
 
-		log.info("Setting authentication for storeId: {} with role: {}", storeId, role);
+		log.info("Setting authentication for userId: {} with role: {}", userId, role);
 
 		Collection<GrantedAuthority> authorities = List.of(role.toGrantedAuthority());
-		UsernamePasswordAuthenticationToken authentication = createAuthentication(storeId, authorities, role);
+		UsernamePasswordAuthenticationToken authentication = createAuthentication(userId, authorities, role);
 		authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-		log.info("Authentication set: storeId: {}, role: {}", storeId, role);
+		log.info("Authentication set: userId: {}, role: {}", userId, role);
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
@@ -86,16 +86,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 	}
 
-	private UsernamePasswordAuthenticationToken createAuthentication(Long storeId,
+	private UsernamePasswordAuthenticationToken createAuthentication(Long userId,
 		Collection<GrantedAuthority> authorities, Role role) {
-		log.info("Creating authentication for storeId: {} with role: {}", storeId, role);
+		log.info("Creating authentication for userId: {} with role: {}", userId, role);
 
 		if (role == Role.ADMIN) {
-			log.info("Creating AdminAuthentication for storeId: {}", storeId);
-			return new AdminAuthentication(storeId.toString(), null, authorities);
-		} else if (role == Role.STORE || role == Role.ONBOARDING)  {
-			log.info("Creating StoreAuthentication for storeId: {}", storeId);
-			return new MemberAuthentication(storeId.toString(), null, authorities);
+			log.info("Creating AdminAuthentication for userId: {}", userId);
+			return new AdminAuthentication(userId.toString(), null, authorities);
+		} else if (role == Role.USER || role == Role.ONBOARDING)  {
+			log.info("Creating StoreAuthentication for userId: {}", userId);
+			return new MemberAuthentication(userId.toString(), null, authorities);
 		}
 		log.error("Unknown role: {}", role);
 		throw new IllegalArgumentException("Unknown role: " + role);
