@@ -23,6 +23,31 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
 
+      # ✅ 필수 시크릿이 비어있으면 즉시 fail
+      - name: Sanity check required secrets
+        run: |
+          test -n "${{ secrets.AWS_ACCESS_ID }}"   || (echo "❌ AWS_ACCESS_ID missing"; exit 1)
+          test -n "${{ secrets.AWS_SECRET_KEY }}"  || (echo "❌ AWS_SECRET_KEY missing"; exit 1)
+          test -n "${{ secrets.AWS_ACCOUNT_ID }}"  || (echo "❌ AWS_ACCOUNT_ID missing"; exit 1)
+          test -n "${{ secrets.ECR_APP_NAME }}"    || (echo "❌ ECR_APP_NAME missing"; exit 1)
+
+      # ✅ 여기서부터 필요한 env를 만들어 $GITHUB_ENV 로 주입
+      - name: Derive env
+        run: |
+          echo "AWS_REGION=ap-northeast-2" >> $GITHUB_ENV
+          echo "ECR_REPO_NAME=${{ secrets.ECR_APP_NAME }}-dev" >> $GITHUB_ENV
+          echo "ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
+          echo "APP_ECR_REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/${{ secrets.ECR_APP_NAME }}-dev" >> $GITHUB_ENV
+          echo "SECRET_ID=aiss/dev" >> $GITHUB_ENV
+
+      # ✅ 자격증명은 with: 로 명시 전달
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
