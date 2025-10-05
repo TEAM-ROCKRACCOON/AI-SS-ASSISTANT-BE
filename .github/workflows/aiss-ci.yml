@@ -16,7 +16,17 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
 
+      - name: Validate Gradle Wrapper   # 안전장치
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Enable Gradle cache       # 속도 향상
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Remove local org.gradle.java.home from gradle.properties
+        run: |
+          sed -i.bak '/^org\.gradle\.java\.home=/d' gradle.properties || true
+
       - name: Gradle build
         run: |
           chmod +x gradlew
-          ./gradlew clean build -x test
+          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" clean build -x test
