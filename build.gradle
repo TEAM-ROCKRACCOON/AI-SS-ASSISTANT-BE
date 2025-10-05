@@ -26,9 +26,6 @@ repositories {
 }
 
 dependencies {
-	// ✅ Spring Cloud BOM만 platform으로 추가 (Boot BOM은 Spring Boot 플러그인이 자동 적용)
-	implementation platform("org.springframework.cloud:spring-cloud-dependencies:2024.0.2")
-
 	// Spring
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -57,7 +54,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// External API
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0'
 	implementation 'io.github.openfeign.form:feign-form:3.8.0'
 	implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 
