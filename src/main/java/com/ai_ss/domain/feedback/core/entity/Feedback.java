@@ -1,5 +1,6 @@
 package com.ai_ss.domain.feedback.core.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
@@ -27,10 +28,22 @@ public class Feedback {
 
 	private Long userId;
 
-	private int volumeScore; // 분량 만족도 (1~5)
-	private int timeScore;   // 시간 만족도 (1~5)
+	private LocalDate weekStartDate;
 
-	private String text;     // 자유 피드백
+	private int cleaningAmountScore; // 분량 만족도 (1~5)
 
-	private LocalDateTime submittedAt;
+	private int recommendedTimeScore;   // 시간 만족도 (1~5)
+
+	private String comment;     // 자유 피드백
+
+	public static Feedback create(Long userId, LocalDate weekStartDate, int cleaningAmountScore, int recommendedTimeScore, String comment) {
+		if (comment == null || comment.isEmpty()) comment = "";
+		return Feedback.builder()
+			.userId(userId)
+			.weekStartDate(weekStartDate)
+			.cleaningAmountScore(cleaningAmountScore)
+			.recommendedTimeScore(recommendedTimeScore)
+			.comment(comment)
+			.build();
+	}
 }

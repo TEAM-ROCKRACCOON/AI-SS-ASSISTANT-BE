@@ -37,12 +37,18 @@ public class JwtTokenProvider {
 	@Value("${jwt.refresh-token-expire-time}")
 	private long refreshTokenExpireTime;
 
-	private static final String STORE_ID = "storeId";
+	private SecretKey secretKey;
+
+	private static final String USER_ID = "userId";
 	private static final String ROLE_KEY = "role";
 
 	@PostConstruct
 	protected void init() {
-		jwtSecret = Base64.getEncoder().encodeToString(jwtSecret.getBytes(StandardCharsets.UTF_8));
+		// 설정 값이 이미 Base64 문자열이라면 바로 decode, 아니라면 getBytes 후 encode → decode 일관화
+		byte[] keyBytes = Base64.getDecoder().decode(
+			Base64.getEncoder().encodeToString(jwtSecret.getBytes(StandardCharsets.UTF_8))
+		);
+		secretKey = Keys.hmacShaKeyFor(keyBytes);
 	}
 
 	public String issueAccessToken(final Authentication authentication) {
@@ -75,14 +81,14 @@ public class JwtTokenProvider {
 		}
 	}
 
-	public Long getStoreIdFromJwt(String token) {
+	public Long getUserIdFromJwt(String token) {
 		Claims claims = getBody(token);
-		Long storeId = Long.valueOf(claims.get(STORE_ID).toString());
+		Long userId = Long.valueOf(claims.get(USER_ID).toString());
 
-		// 로그 추가: storeId 확인
-		log.info("Extracted storeId from JWT: {}", storeId);
+		// 로그 추가: userId 확인
+		log.info("Extracted userId from JWT: {}", userId);
 
-		return storeId;
+		return userId;
 	}
 
 	public Role getRoleFromJwt(String token) {
@@ -103,7 +109,7 @@ public class JwtTokenProvider {
 
 		final Claims claims = Jwts.claims().setIssuedAt(now).setExpiration(new Date(now.getTime() + expiredTime));
 
-		claims.put(STORE_ID, authentication.getPrincipal());
+		claims.put(USER_ID, authentication.getPrincipal());
 		log.info("Added store ID to claims: {}", authentication.getPrincipal());
 		log.info("Authorities before token generation: {}", authentication.getAuthorities());
 
@@ -130,8 +136,7 @@ public class JwtTokenProvider {
 	}
 
 	private SecretKey getSigningKey() {
-		String encodedKey = Base64.getEncoder().encodeToString(jwtSecret.getBytes());
-		return Keys.hmacShaKeyFor(encodedKey.getBytes());
+		return secretKey;
 	}
 
 }

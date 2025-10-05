@@ -1,7 +1,8 @@
-package com.ai_ss.domain.routine.core.entity;
+package com.ai_ss.domain.todo.core.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,12 +15,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "routine")
+@Table(name = "todo")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Routine {
+public class Todo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,16 +32,37 @@ public class Routine {
 
 	private LocalDateTime startDateTime;  // 루틴 시작 일시
 
-	private Integer durationMinutes;  // 루틴 소요 시간 (분 단위)
+	private Boolean isDone = false;
 
-	private Boolean completed;
-
+	@Nullable
 	private LocalDateTime completedAt;  // 완료된 경우 기록
 
-	private Boolean deleted;
+	private Boolean isDeleted = false;
 
+	@Nullable
 	private LocalDateTime deletedAt;
 
-	// 추후 필요 시 enum 타입이나 타입 분리 고려
-	private String routineType;
+	public static Todo create(Long userId, String title, LocalDateTime startDateTime) {
+		return Todo.builder()
+			.userId(userId)
+			.title(title)
+			.startDateTime(startDateTime)
+			.isDone(false)
+			.isDeleted(false)
+			.build();
+	}
+
+	public void complete(boolean isDone) {
+		this.isDone = isDone;
+		this.completedAt = isDone ? LocalDateTime.now() : null;
+	}
+
+	public void delete() {
+		this.isDeleted = true;
+		this.deletedAt = LocalDateTime.now();
+	}
+
+	public void updateStartTime(LocalDateTime startDateTime) {
+		this.startDateTime = startDateTime;
+	}
 }

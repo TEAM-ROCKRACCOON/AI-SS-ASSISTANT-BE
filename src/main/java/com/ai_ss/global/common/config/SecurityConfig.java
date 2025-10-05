@@ -34,10 +34,14 @@ public class SecurityConfig {
 		"/api/v1/files/**",
 		"/api/v1/presigned-url/**",
 		"/error",
-		"/api/v1/stores/login/**",
+		"/api/v1/users/login/**",
+		"/api/v1/users/logout/**",
+		"/api/v1/users/refresh-token/**",
 		"/api/v1/onboarding/**",
-		"/api/v1/stores/refresh-token/**",
-		"/api/v1/stores/terms/**",
+		"/oauth2/**",
+		"/login/oauth2/**",
+		"/login/oauth2/code/google",
+		"/favicon.ico/**",
 		"/"
 	};
 

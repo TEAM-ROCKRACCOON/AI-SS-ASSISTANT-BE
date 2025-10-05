@@ -23,6 +23,7 @@ public class CleaningTask {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String name; // 예: "바닥 청소", "욕실 청소"
-	private int estimatedMinutes; // 평균 소요 시간
+	private String title; // 예: "바닥 청소", "욕실 청소"
+
+	private int durationMinutes; // 평균 소요 시간
 }
