@@ -1,13 +1,18 @@
+# ---------- 1) Build stage ----------
+FROM gradle:8.10.2-jdk21 AS builder
+WORKDIR /workspace
+COPY gradle gradle
+COPY gradlew .
+COPY settings.gradle build.gradle ./
+COPY . .
+RUN ./gradlew --no-daemon clean bootJar -x test
+
+# ---------- 2) Runtime stage ----------
 FROM amazoncorretto:21
-
-# 보안: non-root
-RUN useradd -m appuser
 WORKDIR /app
-
-# 앱 바이너리만
-COPY ./build/libs/aiss-server-0.0.1-SNAPSHOT.jar ./aiss-application.jar
-
-ENV TZ=Asia/Seoul
+RUN useradd -m appuser
 USER appuser
-
-CMD ["java", "-jar", "aiss-application.jar"]
+COPY --from=builder /workspace/build/libs/app.jar /app/app.jar
+ENV TZ=Asia/Seoul
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]
