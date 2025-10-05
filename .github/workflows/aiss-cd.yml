@@ -93,7 +93,7 @@ jobs:
           source: |
             docker-compose.yml
             script/**
-          target: /home/ec2-user/app/
+          target: /home/ubuntu/app/
           overwrite: true
 
       - name: Run deploy on EC2
