@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: aiss-server
+    image: ${APP_ECR_REPO}:${IMAGE_TAG}
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - TZ=Asia/Seoul
+      - JAVA_TOOL_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      - SPRING_CONFIG_IMPORT=aws-secretsmanager:/aiss/dev
+      - AWS_REGION=${AWS_REGION}
+    depends_on:
+      - redis
+    networks:
+      - aiss-network
+    expose:
+      - "8080"   # 외부 바인딩 없이 프록시 뒤에 배치
+
+  redis:
+    container_name: aiss-redis
+    image: redis:7.2-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - aiss-network
+    volumes:
+      - redis-data:/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: aiss-nginx
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    networks:
+      - aiss-network
+
+  # certbot은 "한 번 실행해서 인증서 발급" 또는 "주기 갱신" 때만 씀
+  certbot:
+    image: certbot/certbot
+    container_name: aiss-certbot
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    entrypoint: /bin/sh
+    command: -c "sleep infinity"  # 필요 시 docker exec로 명령 실행
+
+networks:
+  aiss-network:
+    driver: bridge
+
+volumes:
+  redis-data:
