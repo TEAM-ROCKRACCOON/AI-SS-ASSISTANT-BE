@@ -2,12 +2,14 @@ package com.ai_ss.global.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsUtils;
 
 import com.ai_ss.domain.user.core.entity.enums.Role;
 import com.ai_ss.global.auth.jwt.filter.JwtAuthenticationFilter;
@@ -54,14 +56,16 @@ public class SecurityConfig {
 		http.csrf(AbstractHttpConfigurer::disable)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
+			.cors(Customizer.withDefaults())
 			.sessionManagement(session ->
 				session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.exceptionHandling(exception ->
 				exception.authenticationEntryPoint(customJwtAuthenticationEntryPoint)
 					.accessDeniedHandler(customAccessDeniedHandler));
 
-		http.authorizeHttpRequests(auth ->
-				auth.requestMatchers(AUTH_WHITELIST).permitAll()
+		http.authorizeHttpRequests(auth -> auth
+				.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+				.requestMatchers(AUTH_WHITELIST).permitAll()
 					.requestMatchers(AUTH_ADMIN_ONLY).hasAuthority(Role.ADMIN.getRoleName())
 					.anyRequest().authenticated())
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
